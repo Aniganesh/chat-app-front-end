@@ -1,26 +1,53 @@
-import React from 'react';
-import logo from './logo.svg';
-import './App.css';
+import { Box, CircularProgress } from "@mui/material";
+import { StoreProvider, useStoreRehydrated } from "easy-peasy";
+import React, { FC, useEffect } from "react";
+import Dashboard from "Components/Dashboard";
+import Login from "Components/Login";
+import Store, { useStoreState } from "Stores";
+import { createTheme, ThemeProvider } from "@mui/material/styles";
+import "./index.css";
+const theme = createTheme();
 
-function App() {
+const App = () => {
+  useEffect(() => {
+    return () => {
+      Store.persist.flush();
+    };
+  }, []);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <ThemeProvider theme={theme}>
+      <StoreProvider store={Store}>
+        <HomePage />
+      </StoreProvider>
+    </ThemeProvider>
   );
-}
+};
 
 export default App;
+
+const HomePage: FC = () => {
+  const isRehydrated = useStoreRehydrated();
+
+  const { userId } = useStoreState(({ AppStore: { userId } }) => ({ userId }));
+  if (!isRehydrated) {
+    return (
+      <Box display="flex" justifyContent="center" width="100%">
+        <CircularProgress size={100} />
+      </Box>
+    );
+  }
+  return <>{userId ? <Dashboard /> : <Login />}</>;
+};
+
+// const useDelayedHydration = () => {
+//   const [hydrated, setHydrated] = useState(false);
+//   const hydratedActual = useStoreRehydrated();
+//   useEffect(() => {
+//     setTimeout(() => {
+//       setHydrated(hydratedActual);
+//     }, 5000);
+//   }, [hydratedActual]);
+
+//   return hydrated;
+// };
